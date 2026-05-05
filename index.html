@@ -3,42 +3,330 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World Demo</title>
+    <title>Claude vs ChatGPT</title>
     <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --claude: #d97757;
+        --chatgpt: #10a37f;
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --border: #334155;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+      }
+
       body {
-        margin: 0;
         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
         min-height: 100vh;
+        padding: 2rem 1rem 4rem;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      header h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+      }
+
+      header h1 .claude { color: var(--claude); }
+      header h1 .vs { color: var(--muted); font-size: 0.6em; margin: 0 0.4em; }
+      header h1 .chatgpt { color: var(--chatgpt); }
+
+      header p {
+        color: var(--muted);
+        font-size: 1.1rem;
+      }
+
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        max-width: 1000px;
+        margin: 0 auto 3rem;
+      }
+
+      @media (max-width: 640px) {
+        .comparison { grid-template-columns: 1fr; }
+      }
+
+      .card {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid var(--border);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
         display: grid;
         place-items: center;
-        background: linear-gradient(135deg, #0f172a, #1d4ed8);
-        color: #ffffff;
+        font-size: 1.5rem;
+        font-weight: 700;
+        flex-shrink: 0;
       }
 
-      main {
-        text-align: center;
-        padding: 2rem 2.5rem;
+      .avatar.claude { background: var(--claude); color: white; }
+      .avatar.chatgpt { background: var(--chatgpt); color: white; }
+
+      .card-header h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+      }
+
+      .card-header .maker {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      .tag {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        margin-bottom: 1.25rem;
+      }
+
+      .tag.claude { background: rgba(217,119,87,0.15); color: var(--claude); }
+      .tag.chatgpt { background: rgba(16,163,127,0.15); color: var(--chatgpt); }
+
+      .features {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+
+      .features li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      .features li .icon {
+        margin-top: 2px;
+        flex-shrink: 0;
+      }
+
+      .features li .icon.plus { color: #22c55e; }
+      .features li .icon.minus { color: #ef4444; }
+
+      /* Stats table */
+      .stats-section {
+        max-width: 1000px;
+        margin: 0 auto 3rem;
+      }
+
+      .stats-section h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.85rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
         border-radius: 16px;
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(6px);
+        overflow: hidden;
+        border: 1px solid var(--border);
       }
 
-      h1 {
-        margin-bottom: 0.5rem;
-        font-size: clamp(2rem, 5vw, 3rem);
+      th, td {
+        padding: 1rem 1.25rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.95rem;
       }
 
-      p {
-        margin: 0;
-        opacity: 0.9;
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+        background: rgba(255,255,255,0.03);
+      }
+
+      td:first-child { color: var(--muted); }
+
+      tr:last-child td { border-bottom: none; }
+
+      .winner {
+        font-weight: 600;
+      }
+
+      .winner.claude { color: var(--claude); }
+      .winner.chatgpt { color: var(--chatgpt); }
+      .winner.tie { color: #facc15; }
+
+      /* Verdict */
+      .verdict {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid var(--border);
+        text-align: center;
+      }
+
+      .verdict h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+      }
+
+      .verdict p {
+        color: var(--muted);
+        max-width: 620px;
+        margin: 0 auto;
+        line-height: 1.7;
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Hello World 👋</h1>
-      <p>Wenn du das siehst, läuft dein Codespace-Preview korrekt.</p>
-    </main>
+
+    <header>
+      <h1>
+        <span class="claude">Claude</span>
+        <span class="vs">vs</span>
+        <span class="chatgpt">ChatGPT</span>
+      </h1>
+      <p>Welches KI-Modell passt besser zu dir?</p>
+    </header>
+
+    <div class="comparison">
+      <!-- Claude -->
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar claude">C</div>
+          <div>
+            <h2>Claude</h2>
+            <div class="maker">by Anthropic</div>
+          </div>
+        </div>
+        <span class="tag claude">Aktuelles Modell: Claude Sonnet 4.6</span>
+        <ul class="features">
+          <li><span class="icon plus">✔</span> Sehr lange Kontextfenster (200k Token)</li>
+          <li><span class="icon plus">✔</span> Hervorragend bei langen Dokumenten</li>
+          <li><span class="icon plus">✔</span> Präzises, nuanciertes Schreiben</li>
+          <li><span class="icon plus">✔</span> Starker Fokus auf Sicherheit & Ehrlichkeit</li>
+          <li><span class="icon plus">✔</span> Exzellentes Code-Reasoning</li>
+          <li><span class="icon minus">✗</span> Kein integrierter Bild-Generator</li>
+          <li><span class="icon minus">✗</span> Kleineres Plugin-Ökosystem</li>
+        </ul>
+      </div>
+
+      <!-- ChatGPT -->
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar chatgpt">G</div>
+          <div>
+            <h2>ChatGPT</h2>
+            <div class="maker">by OpenAI</div>
+          </div>
+        </div>
+        <span class="tag chatgpt">Aktuelles Modell: GPT-4o</span>
+        <ul class="features">
+          <li><span class="icon plus">✔</span> Riesiges Plugin- & GPT-Store-Ökosystem</li>
+          <li><span class="icon plus">✔</span> DALL·E Bildgenerierung integriert</li>
+          <li><span class="icon plus">✔</span> Sprachsteuerung (Advanced Voice Mode)</li>
+          <li><span class="icon plus">✔</span> Breite Bekanntheit & Community</li>
+          <li><span class="icon plus">✔</span> Code Interpreter / Data Analysis</li>
+          <li><span class="icon minus">✗</span> Kürzeres Kontextfenster</li>
+          <li><span class="icon minus">✗</span> Neigt manchmal zu Halluzinationen</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stats-section">
+      <h2>Direktvergleich</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Kategorie</th>
+            <th>Claude</th>
+            <th>ChatGPT</th>
+            <th>Gewinner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kontextfenster</td>
+            <td>200.000 Token</td>
+            <td>128.000 Token</td>
+            <td class="winner claude">Claude</td>
+          </tr>
+          <tr>
+            <td>Coding</td>
+            <td>Sehr stark</td>
+            <td>Sehr stark</td>
+            <td class="winner tie">Unentschieden</td>
+          </tr>
+          <tr>
+            <td>Kreatives Schreiben</td>
+            <td>Exzellent</td>
+            <td>Gut</td>
+            <td class="winner claude">Claude</td>
+          </tr>
+          <tr>
+            <td>Bildgenerierung</td>
+            <td>Nicht verfügbar</td>
+            <td>DALL·E integriert</td>
+            <td class="winner chatgpt">ChatGPT</td>
+          </tr>
+          <tr>
+            <td>Plugin-Ökosystem</td>
+            <td>Wächst</td>
+            <td>Sehr groß</td>
+            <td class="winner chatgpt">ChatGPT</td>
+          </tr>
+          <tr>
+            <td>Faktentreue</td>
+            <td>Hoch</td>
+            <td>Mittel</td>
+            <td class="winner claude">Claude</td>
+          </tr>
+          <tr>
+            <td>Gratis-Tier</td>
+            <td>Verfügbar</td>
+            <td>Verfügbar</td>
+            <td class="winner tie">Unentschieden</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="verdict">
+      <h2>Fazit</h2>
+      <p>
+        Für <strong>lange Texte, Coding und nuancierte Analysen</strong> ist Claude oft die bessere Wahl.
+        Für <strong>Bilder, Plugins und Sprachsteuerung</strong> hat ChatGPT die Nase vorn.
+        Am Ende kommt es auf deinen Use-Case an — beide sind exzellente Werkzeuge.
+      </p>
+    </div>
+
   </body>
 </html>
