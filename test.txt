@@ -1,0 +1,4 @@
+Codespace Sync Test
+-------------------
+Wenn du diese Datei siehst, funktioniert die Synchronisation!
+Erstellt: 2026-05-05
