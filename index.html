@@ -3,330 +3,375 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Claude vs ChatGPT</title>
+    <title>Dino Game</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      :root {
-        --claude: #d97757;
-        --chatgpt: #10a37f;
-        --bg: #0f172a;
-        --surface: #1e293b;
-        --border: #334155;
-        --text: #f1f5f9;
-        --muted: #94a3b8;
-      }
-
       body {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        padding: 2rem 1rem 4rem;
-      }
-
-      header {
-        text-align: center;
-        margin-bottom: 3rem;
-      }
-
-      header h1 {
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-      }
-
-      header h1 .claude { color: var(--claude); }
-      header h1 .vs { color: var(--muted); font-size: 0.6em; margin: 0 0.4em; }
-      header h1 .chatgpt { color: var(--chatgpt); }
-
-      header p {
-        color: var(--muted);
-        font-size: 1.1rem;
-      }
-
-      .comparison {
+        background: #1a1a2e;
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        max-width: 1000px;
-        margin: 0 auto 3rem;
+        place-items: center;
+        min-height: 100vh;
+        font-family: system-ui, sans-serif;
+        color: #f1f5f9;
       }
 
-      @media (max-width: 640px) {
-        .comparison { grid-template-columns: 1fr; }
+      .wrapper {
+        text-align: center;
       }
 
-      .card {
-        background: var(--surface);
-        border-radius: 16px;
-        padding: 2rem;
-        border: 1px solid var(--border);
+      h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        color: #e2e8f0;
       }
 
-      .card-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
+      .subtitle {
+        color: #64748b;
+        font-size: 0.9rem;
         margin-bottom: 1.5rem;
       }
 
-      .avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: grid;
-        place-items: center;
-        font-size: 1.5rem;
-        font-weight: 700;
-        flex-shrink: 0;
+      canvas {
+        background: #0f172a;
+        border-radius: 16px;
+        border: 2px solid #334155;
+        display: block;
       }
 
-      .avatar.claude { background: var(--claude); color: white; }
-      .avatar.chatgpt { background: var(--chatgpt); color: white; }
-
-      .card-header h2 {
-        font-size: 1.4rem;
-        font-weight: 700;
-      }
-
-      .card-header .maker {
-        font-size: 0.8rem;
-        color: var(--muted);
-      }
-
-      .tag {
-        display: inline-block;
-        font-size: 0.7rem;
-        font-weight: 600;
-        padding: 0.2rem 0.6rem;
-        border-radius: 999px;
-        margin-bottom: 1.25rem;
-      }
-
-      .tag.claude { background: rgba(217,119,87,0.15); color: var(--claude); }
-      .tag.chatgpt { background: rgba(16,163,127,0.15); color: var(--chatgpt); }
-
-      .features {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-      }
-
-      .features li {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-        font-size: 0.95rem;
-        color: var(--muted);
-      }
-
-      .features li .icon {
-        margin-top: 2px;
-        flex-shrink: 0;
-      }
-
-      .features li .icon.plus { color: #22c55e; }
-      .features li .icon.minus { color: #ef4444; }
-
-      /* Stats table */
-      .stats-section {
-        max-width: 1000px;
-        margin: 0 auto 3rem;
-      }
-
-      .stats-section h2 {
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+      #info {
+        margin-top: 1rem;
+        color: #475569;
         font-size: 0.85rem;
       }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: var(--surface);
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-      }
-
-      th, td {
-        padding: 1rem 1.25rem;
-        text-align: left;
-        border-bottom: 1px solid var(--border);
-        font-size: 0.95rem;
-      }
-
-      th {
-        color: var(--muted);
+      #info span {
+        color: #94a3b8;
         font-weight: 600;
-        font-size: 0.85rem;
-        background: rgba(255,255,255,0.03);
-      }
-
-      td:first-child { color: var(--muted); }
-
-      tr:last-child td { border-bottom: none; }
-
-      .winner {
-        font-weight: 600;
-      }
-
-      .winner.claude { color: var(--claude); }
-      .winner.chatgpt { color: var(--chatgpt); }
-      .winner.tie { color: #facc15; }
-
-      /* Verdict */
-      .verdict {
-        max-width: 1000px;
-        margin: 0 auto;
-        background: var(--surface);
-        border-radius: 16px;
-        padding: 2rem;
-        border: 1px solid var(--border);
-        text-align: center;
-      }
-
-      .verdict h2 {
-        font-size: 1.5rem;
-        font-weight: 800;
-        margin-bottom: 1rem;
-      }
-
-      .verdict p {
-        color: var(--muted);
-        max-width: 620px;
-        margin: 0 auto;
-        line-height: 1.7;
       }
     </style>
   </head>
   <body>
-
-    <header>
-      <h1>
-        <span class="claude">Claude</span>
-        <span class="vs">vs</span>
-        <span class="chatgpt">ChatGPT</span>
-      </h1>
-      <p>Welches KI-Modell passt besser zu dir?</p>
-    </header>
-
-    <div class="comparison">
-      <!-- Claude -->
-      <div class="card">
-        <div class="card-header">
-          <div class="avatar claude">C</div>
-          <div>
-            <h2>Claude</h2>
-            <div class="maker">by Anthropic</div>
-          </div>
-        </div>
-        <span class="tag claude">Aktuelles Modell: Claude Sonnet 4.6</span>
-        <ul class="features">
-          <li><span class="icon plus">✔</span> Sehr lange Kontextfenster (200k Token)</li>
-          <li><span class="icon plus">✔</span> Hervorragend bei langen Dokumenten</li>
-          <li><span class="icon plus">✔</span> Präzises, nuanciertes Schreiben</li>
-          <li><span class="icon plus">✔</span> Starker Fokus auf Sicherheit & Ehrlichkeit</li>
-          <li><span class="icon plus">✔</span> Exzellentes Code-Reasoning</li>
-          <li><span class="icon minus">✗</span> Kein integrierter Bild-Generator</li>
-          <li><span class="icon minus">✗</span> Kleineres Plugin-Ökosystem</li>
-        </ul>
-      </div>
-
-      <!-- ChatGPT -->
-      <div class="card">
-        <div class="card-header">
-          <div class="avatar chatgpt">G</div>
-          <div>
-            <h2>ChatGPT</h2>
-            <div class="maker">by OpenAI</div>
-          </div>
-        </div>
-        <span class="tag chatgpt">Aktuelles Modell: GPT-4o</span>
-        <ul class="features">
-          <li><span class="icon plus">✔</span> Riesiges Plugin- & GPT-Store-Ökosystem</li>
-          <li><span class="icon plus">✔</span> DALL·E Bildgenerierung integriert</li>
-          <li><span class="icon plus">✔</span> Sprachsteuerung (Advanced Voice Mode)</li>
-          <li><span class="icon plus">✔</span> Breite Bekanntheit & Community</li>
-          <li><span class="icon plus">✔</span> Code Interpreter / Data Analysis</li>
-          <li><span class="icon minus">✗</span> Kürzeres Kontextfenster</li>
-          <li><span class="icon minus">✗</span> Neigt manchmal zu Halluzinationen</li>
-        </ul>
-      </div>
+    <div class="wrapper">
+      <h1>🦕 Dino Game</h1>
+      <p class="subtitle">Drücke <strong>Leertaste</strong> oder <strong>Tippe</strong> zum Starten</p>
+      <canvas id="game" width="800" height="300"></canvas>
+      <p id="info">Score: <span id="score">0</span> &nbsp;|&nbsp; Highscore: <span id="hi">0</span></p>
     </div>
 
-    <div class="stats-section">
-      <h2>Direktvergleich</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Kategorie</th>
-            <th>Claude</th>
-            <th>ChatGPT</th>
-            <th>Gewinner</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Kontextfenster</td>
-            <td>200.000 Token</td>
-            <td>128.000 Token</td>
-            <td class="winner claude">Claude</td>
-          </tr>
-          <tr>
-            <td>Coding</td>
-            <td>Sehr stark</td>
-            <td>Sehr stark</td>
-            <td class="winner tie">Unentschieden</td>
-          </tr>
-          <tr>
-            <td>Kreatives Schreiben</td>
-            <td>Exzellent</td>
-            <td>Gut</td>
-            <td class="winner claude">Claude</td>
-          </tr>
-          <tr>
-            <td>Bildgenerierung</td>
-            <td>Nicht verfügbar</td>
-            <td>DALL·E integriert</td>
-            <td class="winner chatgpt">ChatGPT</td>
-          </tr>
-          <tr>
-            <td>Plugin-Ökosystem</td>
-            <td>Wächst</td>
-            <td>Sehr groß</td>
-            <td class="winner chatgpt">ChatGPT</td>
-          </tr>
-          <tr>
-            <td>Faktentreue</td>
-            <td>Hoch</td>
-            <td>Mittel</td>
-            <td class="winner claude">Claude</td>
-          </tr>
-          <tr>
-            <td>Gratis-Tier</td>
-            <td>Verfügbar</td>
-            <td>Verfügbar</td>
-            <td class="winner tie">Unentschieden</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <script>
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const scoreEl = document.getElementById('score');
+      const hiEl = document.getElementById('hi');
 
-    <div class="verdict">
-      <h2>Fazit</h2>
-      <p>
-        Für <strong>lange Texte, Coding und nuancierte Analysen</strong> ist Claude oft die bessere Wahl.
-        Für <strong>Bilder, Plugins und Sprachsteuerung</strong> hat ChatGPT die Nase vorn.
-        Am Ende kommt es auf deinen Use-Case an — beide sind exzellente Werkzeuge.
-      </p>
-    </div>
+      const W = canvas.width;
+      const H = canvas.height;
+      const GROUND = H - 60;
 
+      let state = 'idle'; // idle | running | dead
+      let score = 0;
+      let hiScore = 0;
+      let speed = 6;
+      let frame = 0;
+      let animId;
+
+      // --- Dino ---
+      const dino = {
+        x: 80,
+        y: GROUND,
+        w: 44,
+        h: 52,
+        vy: 0,
+        jumping: false,
+        leg: 0,
+        legTimer: 0,
+
+        jump() {
+          if (!this.jumping) {
+            this.vy = -16;
+            this.jumping = true;
+          }
+        },
+
+        update() {
+          if (this.jumping) {
+            this.vy += 0.8;
+            this.y += this.vy;
+            if (this.y >= GROUND) {
+              this.y = GROUND;
+              this.vy = 0;
+              this.jumping = false;
+            }
+          } else {
+            this.legTimer++;
+            if (this.legTimer > 8) { this.leg ^= 1; this.legTimer = 0; }
+          }
+        },
+
+        draw() {
+          const x = this.x, y = this.y, w = this.w, h = this.h;
+          const col = '#4ade80';
+          const dark = '#16a34a';
+
+          // body
+          roundRect(x, y - h + 8, w, h - 8, 6, col);
+
+          // head
+          roundRect(x + 8, y - h - 10, w - 4, 22, 6, col);
+
+          // eye
+          ctx.fillStyle = '#0f172a';
+          ctx.beginPath();
+          ctx.arc(x + w - 4, y - h - 3, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.arc(x + w - 5, y - h - 4, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // mouth
+          ctx.strokeStyle = dark;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x + w + 2, y - h + 6);
+          ctx.lineTo(x + w - 4, y - h + 8);
+          ctx.stroke();
+
+          // arm
+          ctx.fillStyle = dark;
+          ctx.fillRect(x + w - 6, y - h + 14, 12, 5);
+
+          // legs
+          const l1y = this.leg === 0 ? 0 : -6;
+          const l2y = this.leg === 0 ? -6 : 0;
+          ctx.fillStyle = dark;
+          if (!this.jumping) {
+            ctx.fillRect(x + 6, y + l1y, 10, 14);
+            ctx.fillRect(x + 22, y + l2y, 10, 14);
+          } else {
+            ctx.fillRect(x + 6, y - 4, 10, 12);
+            ctx.fillRect(x + 22, y - 8, 10, 12);
+          }
+        },
+
+        box() {
+          return { x: this.x + 6, y: this.y - this.h + 8, w: this.w - 8, h: this.h };
+        }
+      };
+
+      // --- Cacti ---
+      let cacti = [];
+
+      function spawnCactus() {
+        const types = [
+          { w: 20, h: 50 },
+          { w: 36, h: 50 },
+          { w: 20, h: 70 },
+        ];
+        const t = types[Math.floor(Math.random() * types.length)];
+        cacti.push({ x: W + 20, y: GROUND, w: t.w, h: t.h });
+      }
+
+      let spawnTimer = 0;
+      let spawnInterval = 90;
+
+      function updateCacti() {
+        spawnTimer++;
+        if (spawnTimer >= spawnInterval) {
+          spawnCactus();
+          spawnTimer = 0;
+          spawnInterval = 70 + Math.random() * 50;
+        }
+        for (const c of cacti) c.x -= speed;
+        cacti = cacti.filter(c => c.x > -60);
+      }
+
+      function drawCactus(c) {
+        const col = '#f87171';
+        const dark = '#dc2626';
+
+        // main stem
+        roundRect(c.x + c.w / 2 - 7, c.y - c.h, 14, c.h, 4, col);
+
+        // left arm
+        roundRect(c.x, c.y - c.h * 0.65, c.w / 2 - 2, 10, 3, col);
+        roundRect(c.x, c.y - c.h * 0.65 - 18, 10, 20, 3, col);
+
+        // right arm
+        roundRect(c.x + c.w / 2 + 2, c.y - c.h * 0.55, c.w / 2 - 2, 10, 3, col);
+        roundRect(c.x + c.w - 10, c.y - c.h * 0.55 - 14, 10, 16, 3, col);
+
+        // spikes
+        ctx.fillStyle = dark;
+        [[c.x + c.w / 2 - 7, c.y - c.h - 6], [c.x + 1, c.y - c.h * 0.65 - 24], [c.x + c.w - 8, c.y - c.h * 0.55 - 20]].forEach(([sx, sy]) => {
+          ctx.beginPath();
+          ctx.moveTo(sx + 5, sy);
+          ctx.lineTo(sx + 2, sy + 8);
+          ctx.lineTo(sx + 8, sy + 8);
+          ctx.fill();
+        });
+      }
+
+      // --- Clouds ---
+      let clouds = [
+        { x: 200, y: 60, w: 80 },
+        { x: 500, y: 40, w: 60 },
+        { x: 700, y: 70, w: 100 },
+      ];
+
+      function updateClouds() {
+        for (const c of clouds) c.x -= speed * 0.3;
+        clouds = clouds.filter(c => c.x > -120);
+        if (clouds.length < 3 && Math.random() < 0.005) {
+          clouds.push({ x: W + 20, y: 30 + Math.random() * 60, w: 50 + Math.random() * 70 });
+        }
+      }
+
+      function drawCloud(c) {
+        ctx.fillStyle = 'rgba(148,163,184,0.15)';
+        ctx.beginPath();
+        ctx.arc(c.x + c.w * 0.3, c.y, c.w * 0.22, 0, Math.PI * 2);
+        ctx.arc(c.x + c.w * 0.6, c.y - c.w * 0.08, c.w * 0.28, 0, Math.PI * 2);
+        ctx.arc(c.x + c.w * 0.85, c.y, c.w * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // --- Stars ---
+      const stars = Array.from({ length: 60 }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * (GROUND - 20),
+        r: Math.random() * 1.5 + 0.5,
+        a: Math.random()
+      }));
+
+      function drawStars() {
+        stars.forEach(s => {
+          s.a += 0.01;
+          ctx.fillStyle = `rgba(226,232,240,${0.3 + 0.3 * Math.sin(s.a)})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // --- Ground ---
+      let groundX = 0;
+      function drawGround() {
+        groundX -= speed;
+        if (groundX < -40) groundX = 0;
+
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, GROUND + 14);
+        ctx.lineTo(W, GROUND + 14);
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e3a5f';
+        for (let i = 0; i < 20; i++) {
+          const x = ((groundX + i * 45) % (W + 40)) - 10;
+          ctx.fillRect(x, GROUND + 16, 25 + (i % 3) * 10, 3);
+          ctx.fillRect(x + 5, GROUND + 22, 10, 2);
+        }
+      }
+
+      // --- Collision ---
+      function collides(a, b) {
+        return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + 4 && a.y + a.h > b.y - b.h;
+      }
+
+      // --- Helpers ---
+      function roundRect(x, y, w, h, r, fill) {
+        ctx.fillStyle = fill;
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+        ctx.fill();
+      }
+
+      function drawHUD() {
+        ctx.fillStyle = '#475569';
+        ctx.font = '600 16px system-ui';
+        ctx.textAlign = 'right';
+        ctx.fillText(`HI ${String(hiScore).padStart(5, '0')}  ${String(score).padStart(5, '0')}`, W - 20, 30);
+        ctx.textAlign = 'left';
+      }
+
+      function drawOverlay(text, sub) {
+        ctx.fillStyle = 'rgba(15,23,42,0.7)';
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 36px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, W / 2, H / 2 - 10);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '16px system-ui';
+        ctx.fillText(sub, W / 2, H / 2 + 24);
+        ctx.textAlign = 'left';
+      }
+
+      // --- Game loop ---
+      function reset() {
+        cacti = [];
+        score = 0;
+        speed = 6;
+        spawnTimer = 0;
+        spawnInterval = 90;
+        dino.y = GROUND;
+        dino.vy = 0;
+        dino.jumping = false;
+        frame = 0;
+      }
+
+      function loop() {
+        ctx.clearRect(0, 0, W, H);
+
+        drawStars();
+        updateClouds();
+        clouds.forEach(drawCloud);
+        drawGround();
+
+        if (state === 'running') {
+          frame++;
+          score = Math.floor(frame / 6);
+          scoreEl.textContent = score;
+          if (score > hiScore) { hiScore = score; hiEl.textContent = hiScore; }
+
+          speed = 6 + Math.floor(score / 200) * 0.5;
+
+          dino.update();
+          updateCacti();
+
+          const db = dino.box();
+          for (const c of cacti) {
+            if (collides(db, c)) { state = 'dead'; break; }
+          }
+        }
+
+        cacti.forEach(drawCactus);
+        dino.draw();
+        drawHUD();
+
+        if (state === 'idle') drawOverlay('🦕 DINO GAME', 'Leertaste oder Tippen zum Starten');
+        if (state === 'dead') drawOverlay('GAME OVER', 'Leertaste oder Tippen zum Neustart');
+
+        animId = requestAnimationFrame(loop);
+      }
+
+      // --- Input ---
+      function action() {
+        if (state === 'idle') { state = 'running'; reset(); }
+        else if (state === 'running') dino.jump();
+        else if (state === 'dead') { state = 'running'; reset(); }
+      }
+
+      document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); action(); } });
+      canvas.addEventListener('pointerdown', action);
+
+      loop();
+    </script>
   </body>
 </html>
